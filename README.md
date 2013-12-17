@@ -1,5 +1,5 @@
 ## Flickr Camera Model Scraper
-This is a simple Python script that scrapes Flickr.com for a list of all camera models organized by manufacturer.
+This is a simple Python script that scrapes Flickr.com for a list of all camera models organized by manufacturer and writes it out as YAML.
 
 ## Requirements
 - [Beautiful Soup 4](http://www.crummy.com/software/BeautifulSoup/)
@@ -9,6 +9,8 @@ This is a simple Python script that scrapes Flickr.com for a list of all camera 
 - [Requests](http://requests.readthedocs.org/en/latest/)
 
   ```pip install requests```
+
+- [PyYAML](http://pyyaml.org/wiki/PyYAMLDocumentation)
 
 
 ## Usage
