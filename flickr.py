@@ -16,6 +16,7 @@ import time
 # Additional packages
 from bs4 import BeautifulSoup
 import requests
+import yaml
 
 help_message = '''
 This is a screen scraping program for the camera list on Flickr.
@@ -116,7 +117,7 @@ def GetCameraModels(url):
         tag = str(tag)
         m = re.match(".*\n.*href=\"(?P<Url>.*)\">(?P<Model>.*)</a>",tag)
         if m:
-          listCameraModels.append( CameraModel(m.group('Model'), m.group('Url') ) )
+          listCameraModels.append( CameraModel(m.group('Model'), m.group('Url') ).__dict__ )
           p(m.group('Model'))
        # end if
       # end for
@@ -127,21 +128,18 @@ if __name__ == "__main__":
   listCameraBrands = []
   listCameraBrands = GetCameraBrands()
   print "Found %d brands\n" %len((listCameraBrands)) 
-  # start a file for output
-  fdata = open('cameradata.txt', 'w')
+  fdata = file('cameradata.yml', 'w')
   
   # We should have a list of camera brands (with class CameraBrand) at this point.
-  # Let's try go browse one level deeper
+  cameraDict = {}
   for brand in listCameraBrands:
     print "\nProcessing %s %s" %(brand.name, brand.url)
-    print "-"*25
     time.sleep(1) # Dont' hammer the servers
-    fdata.write("---\n" + brand.name + ", " + brand.url + "\n---\n")
-    listCameraModels = []
-    listCameraModels = GetCameraModels(brand.url)
-    for model in listCameraModels:
-      fdata.write(model.name + ", " + model.url + "\n") 
+    cameraDict[brand.name] = {'url': brand.url, 'cameras': GetCameraModels(brand.url)}
     # end for 
   # end for
-  fdata.close()
+  #yaml.dump(cameraDict, fdata)
+  p(cameraDict)
+  yaml.safe_dump(cameraDict, fdata)
   sys.exit(main())
+
