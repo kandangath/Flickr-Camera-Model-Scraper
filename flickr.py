@@ -9,15 +9,13 @@ Copyright (c) 2010 Anil Kandangath. All rights reserved.
 import sys
 import getopt
 
-import urllib
-import urllib2, httplib
-from urllib2 import Request, urlopen, URLError, HTTPError
-import StringIO
-import gzip
-from bs4 import BeautifulSoup
 import re
 from pprint import pprint as p
 import time
+
+# Additional packages
+from bs4 import BeautifulSoup
+import requests
 
 help_message = '''
 This is a screen scraping program for the camera list on Flickr.
@@ -68,30 +66,17 @@ def main(argv=None):
     print >> sys.stderr, "\t for help use --help"
     return 2
 
-def GetCameraBrands(url, headers):
+def GetCameraBrands():
   """docstring for GetCameraBrands"""
-  httplib.HTTPConnection.debuglevel = 1
-  request = urllib2.Request(url=url,headers=headers)
-  opener = urllib2.build_opener()
+  url = 'http://www.flickr.com/cameras/brands/'
   listCameraBrands = []
   try:
-    response = opener.open(request)
-  except HTTPError,e:
-    print 'Server could not fulfil request. Error: ', e.code
-    return None
-  except URLError,e:
-    print 'Failed to reach server. Error: ', e.reason
+    r = requests.get(url)
+  except:
+    print "Could not get url %s" %(url)
     return None
   else:
-    the_page = response.read()
-    # Unzip the compressed data stream    
-    compressedstream = StringIO.StringIO(the_page)
-    gzipper = gzip.GzipFile(fileobj=compressedstream)
-    data = gzipper.read()
-    # Need to decode utf-8 if this has to be printed anywhere
-    data = data.decode('utf-8')
-    doc = [data]
-    soup = BeautifulSoup(''.join(doc))
+    soup = BeautifulSoup(''.join(r.text))
     
     # Parse these tags
     div = soup.find("div", id="brands")
@@ -111,29 +96,15 @@ def GetCameraBrands(url, headers):
   # end try
   return listCameraBrands
   
-def GetCameraModels(url, headers):
+def GetCameraModels(url):
   """docstring for GetCameraBrands"""
-  httplib.HTTPConnection.debuglevel = 1
-  request = urllib2.Request(url=url,headers=headers)
-  opener = urllib2.build_opener()
-  
   listCameraModels = []
   try:
-    response = opener.open(request)
-  except HTTPError,e:
-    print 'Server could not fulfil request. Error: ', e.code
-  except URLError,e:
-    print 'Failed to reach server. Error: ', e.reason
+    r = requests.get(url)
+  except:
+    print "Failed to get url %s" %(url)
   else:
-    the_page = response.read()
-    # Unzip the compressed data stream    
-    compressedstream = StringIO.StringIO(the_page)
-    gzipper = gzip.GzipFile(fileobj=compressedstream)
-    data = gzipper.read()
-    # Need to decode utf-8 if this has to be printed anywhere
-    data = data.decode('utf-8')
-    doc = [data]
-    soup = BeautifulSoup(''.join(doc))
+    soup = BeautifulSoup(''.join(r.text))
     
     div = soup.find("div", id="models")
     table = div.find("table", {"id":"all-cameras"})
@@ -153,13 +124,8 @@ def GetCameraModels(url, headers):
   return listCameraModels
 
 if __name__ == "__main__":
-  url = 'http://www.flickr.com/cameras/brands/'
-  accept = 'application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5'
-  user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.86 Safari/533.4'
-  headers = { 'User-Agent' : user_agent, 'Accept' : accept, 'Accept-encoding' : 'gzip' }
-  
   listCameraBrands = []
-  listCameraBrands = GetCameraBrands(url, headers)
+  listCameraBrands = GetCameraBrands()
   print "Found %d brands\n" %len((listCameraBrands)) 
   # start a file for output
   fdata = open('cameradata.txt', 'w')
@@ -170,11 +136,11 @@ if __name__ == "__main__":
     print "\nProcessing %s %s" %(brand.name, brand.url)
     print "-"*25
     time.sleep(1) # Dont' hammer the servers
-    fdata.write("---\n" + brand.name + " " + brand.url + "\n---\n")
+    fdata.write("---\n" + brand.name + ", " + brand.url + "\n---\n")
     listCameraModels = []
-    listCameraModels = GetCameraModels(brand.url, headers)
+    listCameraModels = GetCameraModels(brand.url)
     for model in listCameraModels:
-      fdata.write(model.name + " " + model.url + "\n") 
+      fdata.write(model.name + ", " + model.url + "\n") 
     # end for 
   # end for
   fdata.close()
