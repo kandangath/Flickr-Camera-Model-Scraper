@@ -13,7 +13,8 @@ This is a simple Python script that scrapes Flickr.com for a list of all camera 
 
 ## Usage
 There are no command line parameters. Set appropriate permissions and run the script.
-```./flickr.py```
+
+```./flickr.py ```
 
 ## Why?
 This is a simple example of how to use BeautifulSoup to scrape website data.
